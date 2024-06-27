@@ -2,6 +2,8 @@ import os
 import requests
 import gradio as gr
 from gradio_imageslider import ImageSlider
+from PIL import Image
+import numpy as np
 
 from subprocess import check_call
 
@@ -59,7 +61,10 @@ def upscale_image(fullfileName, scale, model,gpuid=""):
         fullfileName, "./output.png", 'models', model, str(scale), gpuid, 'png')
     print(arguments)
     ret = check_call(spawnUpscaling('./bin/upscaling-realesrgan', arguments))
-    return './output.png'
+    if not ret:
+        input_image = Image.open(fullfileName)
+        output_image = Image.open(r"./output.png")
+    return [input_image, output_image]
     
 # upscale_image('image1.png', 'output.png', 'ultramix_balanced', '2', '')
 
@@ -68,8 +73,8 @@ iface = gr.Interface(
     fn=upscale_image,
     inputs=[
         gr.Image(label="Input Image", type="filepath"),
-        gr.Slider(minimum=1, maximum=4, step=1, value=2, label="Scale Factor"),
-        gr.Dropdown(choices=["RealESRGAN_General_x4_v3","ultramix_balanced", "ultrasharp"], label="Model",value="RealESRGAN_General_x4_v3")
+        gr.Slider(minimum=1, maximum=4, step=1, value=4, label="Scale Factor"),
+        gr.Dropdown(choices=["RealESRGAN_General_x4_v3","ultramix_balanced","ultrasharp","4xRealSRGAN_LSDIR"], label="Model",value="RealESRGAN_General_x4_v3")
     ],
     outputs = ImageSlider(label="Before / After"),
     title="Image Upscaling",
